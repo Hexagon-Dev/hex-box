@@ -1,0 +1,38 @@
+<template>
+  <v-main>
+    <v-container
+      class="py-8 px-6 d-flex align-center justify-center h-100">
+      <v-card class="pa-8">
+        <v-card-title>
+          Welcome to Hex-Box!
+        </v-card-title>
+
+        <v-card-text>
+          Hex-Box is a Nuxt + Electron mail client.
+        </v-card-text>
+
+        <v-card-actions>
+          <v-btn variant="flat" color="deep-purple-darken-3" @click="$router.push('/add_account')">Add account</v-btn>
+          <v-btn variant="flat" color="deep-purple-darken-3">Import data</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-container>
+  </v-main>
+</template>
+
+<script>
+import { useAccountsStore } from '../stores/accounts';
+
+export default {
+  computed: {
+    accounts() {
+      return useAccountsStore().accounts;
+    },
+  },
+  created() {
+    if (this.accounts.length > 0) {
+      this.$router.push('/mail');
+    }
+  },
+};
+</script>
