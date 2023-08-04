@@ -10,8 +10,18 @@ export const useServicesStore = defineStore('services', {
                 port: 993,
                 tls: true,
             },
+            {
+                id: 2,
+                name: 'Meta.ua',
+                host: 'pop.meta.ua',
+                port: 995,
+                tls: true,
+            },
         ],
     }),
+    getters: {
+        getServiceById: (state) => (id) => state.services.find(service => service.id === id),
+    },
     actions: {
         addService(service) {
             service.id = this.services.length ?? 1;
@@ -19,5 +29,4 @@ export const useServicesStore = defineStore('services', {
             this.services.push(service);
         },
     },
-    persist: true,
 });

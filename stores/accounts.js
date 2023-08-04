@@ -19,7 +19,12 @@ export const useAccountsStore = defineStore('accounts', {
         },
         setCurrentAccountId(accountId) {
             this.currentAccountId = accountId;
-        }
+        },
+        removeAccount(accountId) {
+            const accountIndex = this.accounts.findIndex(account => account.id === accountId);
+
+            this.accounts.splice(accountIndex, 1);
+        },
     },
     persist: true,
 });

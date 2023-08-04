@@ -19,7 +19,7 @@
         <td>{{ item.created_at }}</td>
         <td>
           <v-btn icon size="small" class="mr-2"><v-icon>mdi-pencil</v-icon></v-btn>
-          <v-btn icon size="small"><v-icon>mdi-delete</v-icon></v-btn>
+          <v-btn icon size="small" @click="removeAccount(item)"><v-icon>mdi-delete</v-icon></v-btn>
         </td>
       </tr>
       </tbody>
@@ -38,6 +38,11 @@ export default {
     },
     services() {
       return useServicesStore().services;
+    },
+  },
+  methods: {
+    removeAccount(account) {
+      useAccountsStore().removeAccount(account);
     },
   },
 };

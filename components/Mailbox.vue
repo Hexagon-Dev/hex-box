@@ -1,26 +1,25 @@
 <template>
   <v-container class="py-8 px-6" fluid>
-    {{tab}}
+    {{ tab }}
 
     <v-row>
-      <v-col v-for="card in cards" :key="card" cols="12">
+      <v-col>
         <v-card>
           <v-list>
-            <v-list-subheader>{{ card }}</v-list-subheader>
-            <template v-for="n in 6" :key="n">
+            <template v-for="email in sortedEmails" :key="email.headers['message-id'].at(0)">
               <v-list-item>
                 <template v-slot:prepend>
-                  <v-avatar color="grey-darken-1"></v-avatar>
+                  <v-checkbox hide-details />
                 </template>
 
-                <v-list-item-title>Message {{ n }}</v-list-item-title>
+                <v-list-item-title>{{ email.headers.from.at(0) }}</v-list-item-title>
 
                 <v-list-item-subtitle>
-                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nihil repellendus distinctio similique
+                  {{ email.headers.subject.at(0) }}
                 </v-list-item-subtitle>
               </v-list-item>
 
-              <v-divider v-if="n !== 6" :key="`divider-${n}`" inset />
+              <v-divider />
             </template>
           </v-list>
         </v-card>
@@ -36,11 +35,23 @@ export default {
       type: String,
       required: true,
     },
+    emails: {
+      type: Array,
+      required: true,
+    },
   },
-  data() {
-    return {
-      cards: ['Today', 'Yesterday'],
-    };
+  computed: {
+    sortedEmails() {
+      console.log(this.emails)
+      return this.emails?.sort(function(a, b) {
+        let keyA = new Date(a.headers.date.at(0));
+        let keyB = new Date(b.headers.date.at(0));
+
+        if (keyA < keyB) return 1;
+        if (keyA > keyB) return -1;
+        return 0;
+      });
+    },
   },
 };
 </script>

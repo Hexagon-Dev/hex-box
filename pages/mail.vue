@@ -38,11 +38,14 @@
 
   <v-main>
     <Accounts v-if="currentMenu === 'accounts'" />
-    <Mailbox v-if="currentMenu.includes('mailbox')" :tab="currentMenu.split('.')?.at(1)" />
+    <Mailbox v-if="currentMenu.includes('mailbox')" :tab="currentMenu.split('.')?.at(1)" :emails="emails" />
   </v-main>
 </template>
 
 <script>
+const { ipcRenderer } = window.require('electron');
+
+import { useServicesStore } from '../stores/services';
 import { useAccountsStore } from '../stores/accounts';
 
 export default {
@@ -59,11 +62,16 @@ export default {
         ['mdi-alert-octagon', 'Spam', 'mailbox.spam'],
       ],
       currentMenu: 'accounts',
+      emails: [],
+      isEmailsLoading: false,
     };
   },
   computed: {
     accountsStore() {
       return useAccountsStore();
+    },
+    serviceStore() {
+      return useServicesStore();
     },
     account: {
       get() {
@@ -74,10 +82,25 @@ export default {
       },
     },
   },
-  created() {
-    if (this.account === null) {
+  mounted() {
+    if (!this.account) {
       this.$router.push('/');
+      return;
     }
+
+    const service = this.serviceStore.getServiceById(this.account.serviceId);
+
+    ipcRenderer.send('loginMailService', {...this.account, ...service});
+
+    ipcRenderer.on('emailsFetched', (event, emails) => {
+      if (emails.success === false) {
+        console.error(emails.error);
+
+        return;
+      }
+
+      this.emails = emails.data;
+    });
   },
 };
 </script>
