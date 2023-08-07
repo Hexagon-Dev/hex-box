@@ -24,14 +24,15 @@
 import { useAccountsStore } from '../stores/accounts';
 
 export default {
+  layout: 'no_accounts',
   computed: {
     accounts() {
       return useAccountsStore().accounts;
     },
   },
-  created() {
+  mounted() {
     if (this.accounts.length > 0) {
-      this.$router.push('/mail');
+      this.$router.push('/mail/inbox');
     }
   },
 };

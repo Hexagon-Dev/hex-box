@@ -6,9 +6,7 @@ export const useServicesStore = defineStore('services', {
             {
                 id: 1,
                 name: 'Google',
-                host: 'imap.gmail.com',
-                port: 993,
-                tls: true,
+                external: true,
             },
             {
                 id: 2,

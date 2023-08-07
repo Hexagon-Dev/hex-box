@@ -6,11 +6,7 @@
           Add account
         </v-card-title>
 
-        <v-card-text v-if="account.serviceId === 1">
-          <v-btn @click="addGoogleAccount">Authorize with Google</v-btn>
-        </v-card-text>
-
-        <v-card-text v-else>
+        <v-card-text>
           <v-form ref="form">
             <v-autocomplete
               class="pb-2"
@@ -23,32 +19,38 @@
               :rules="[rules.required]"
             />
 
-            <v-text-field
-              class="pb-2"
-              v-model="account.email"
-              label="Email"
-              variant="outlined"
-              type="email"
-              :rules="[rules.required, rules.email]"
-              maxlength="255"
-            />
+            <v-btn v-if="account.serviceId === 1" block color="primary" @click="addGoogleAccount">
+              Authorize with Google
+            </v-btn>
 
-            <v-text-field
-              class="pb-2"
-              v-model="account.password"
-              label="Password"
-              variant="outlined"
-              :type="isPasswordVisible ? 'text' : 'password'"
-              :rules="[rules.required]"
-              maxlength="255"
-            >
-              <template #append>
-                <v-btn @click="isPasswordVisible = !isPasswordVisible" variant="flat" size="small" icon>
-                  <v-icon v-if="!isPasswordVisible">mdi-eye</v-icon>
-                  <v-icon v-else>mdi-eye-off</v-icon>
-                </v-btn>
-              </template>
-            </v-text-field>
+            <template v-else>
+              <v-text-field
+                class="pb-2"
+                v-model="account.email"
+                label="Email"
+                variant="outlined"
+                type="email"
+                :rules="[rules.required, rules.email]"
+                maxlength="255"
+              />
+
+              <v-text-field
+                class="pb-2"
+                v-model="account.password"
+                label="Password"
+                variant="outlined"
+                :type="isPasswordVisible ? 'text' : 'password'"
+                :rules="[rules.required]"
+                maxlength="255"
+              >
+                <template #append>
+                  <v-btn @click="isPasswordVisible = !isPasswordVisible" variant="flat" size="small" icon>
+                    <v-icon v-if="!isPasswordVisible">mdi-eye</v-icon>
+                    <v-icon v-else>mdi-eye-off</v-icon>
+                  </v-btn>
+                </template>
+              </v-text-field>
+            </template>
           </v-form>
         </v-card-text>
 
@@ -71,8 +73,8 @@ const { ipcRenderer } = window.require('electron');
 
 import { useAccountsStore } from '../stores/accounts';
 import { useModalStore } from '../stores/modal';
-import validation from '../mixins/validation';
 import { useServicesStore } from '../stores/services';
+import validation from '../mixins/validation';
 
 export default {
   mixins: [validation],
@@ -126,6 +128,22 @@ export default {
     addGoogleAccount() {
       ipcRenderer.send('authGoogle');
 
+      ipcRenderer.on('authGoogleFinish', () => {
+        ipcRenderer.send('fetchGoogleProfile');
+      });
+
+      ipcRenderer.on('fetchGoogleProfile', (event, response) => {
+        this.account.email = response.data.emailAddress;
+
+        const account = this.accountsStore.addAccount(this.account);
+
+        if (this.accountsStore.currentAccountId === null) {
+          this.accountsStore.setCurrentAccountId(account.id);
+        }
+
+        this.$router.push('/mail/inbox');
+      });
+
       ipcRenderer.on('authGoogleCodeExchangeFinish', (event, response) => {
         this.account.email = response.data.emailAddress;
 
@@ -135,7 +153,7 @@ export default {
           this.accountsStore.setCurrentAccountId(account.id);
         }
 
-        this.$router.push('/mail');
+        this.$router.push('/mail/inbox');
       });
     },
   },
