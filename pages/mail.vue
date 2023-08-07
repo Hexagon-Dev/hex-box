@@ -36,10 +36,12 @@
     </v-list>
   </v-navigation-drawer>
 
-  <v-main>
+  <v-main v-if="!isEmailsLoading">
     <Accounts v-if="currentMenu === 'accounts'" />
-    <Mailbox v-if="currentMenu.includes('mailbox')" :tab="currentMenu.split('.')?.at(1)" :emails="emails" />
+    <Mailbox v-if="currentMenu.includes('mailbox')" :tab="currentMenu.split('.')?.at(1)" :emails-obj="emails" />
   </v-main>
+
+  <v-main v-else>LOADING</v-main>
 </template>
 
 <script>
@@ -90,7 +92,14 @@ export default {
 
     const service = this.serviceStore.getServiceById(this.account.serviceId);
 
-    ipcRenderer.send('loginMailService', {...this.account, ...service});
+    const payload = {
+      account: {...this.account},
+      service: {...service},
+    };
+
+    this.isEmailsLoading = true;
+
+    ipcRenderer.send('loginMailService', payload);
 
     ipcRenderer.on('emailsFetched', (event, emails) => {
       if (emails.success === false) {
@@ -99,7 +108,9 @@ export default {
         return;
       }
 
-      this.emails = emails.data;
+      this.emails = emails;
+
+      this.isEmailsLoading = false;
     });
   },
 };

@@ -12,8 +12,8 @@
         </v-card-text>
 
         <v-card-actions>
-          <v-btn variant="flat" color="deep-purple-darken-3" @click="$router.push('/add_account')">Add account</v-btn>
-          <v-btn variant="flat" color="deep-purple-darken-3">Import data</v-btn>
+          <v-btn variant="flat" color="primary" @click="$router.push('/add_account')">Add account</v-btn>
+          <v-btn variant="flat" color="primary">Import data</v-btn>
         </v-card-actions>
       </v-card>
     </v-container>

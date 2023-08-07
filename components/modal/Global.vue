@@ -10,7 +10,7 @@
 
     <template #actions>
       <div class="d-flex justify-center w-100">
-        <v-btn variant="flat" color="deep-purple-darken-3" v-for="button in modal.actions" @click="button.click">
+        <v-btn variant="flat" color="primary" v-for="button in modal.actions" @click="button.click">
           {{ button.text }}
         </v-btn>
       </div>

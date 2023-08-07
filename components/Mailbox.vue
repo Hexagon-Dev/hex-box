@@ -1,21 +1,19 @@
 <template>
   <v-container class="py-8 px-6" fluid>
-    {{ tab }}
-
     <v-row>
       <v-col>
         <v-card>
           <v-list>
-            <template v-for="email in sortedEmails" :key="email.headers['message-id'].at(0)">
+            <template v-for="(email, key) in sortedEmails" :key="key">
               <v-list-item>
                 <template v-slot:prepend>
                   <v-checkbox hide-details />
                 </template>
 
-                <v-list-item-title>{{ email.headers.from.at(0) }}</v-list-item-title>
+                <v-list-item-title>{{ email.title }}</v-list-item-title>
 
                 <v-list-item-subtitle>
-                  {{ email.headers.subject.at(0) }}
+                  {{ email.sender }}: {{ email.snippet }}
                 </v-list-item-subtitle>
               </v-list-item>
 
@@ -35,17 +33,31 @@ export default {
       type: String,
       required: true,
     },
-    emails: {
-      type: Array,
+    emailsObj: {
+      type: Object,
       required: true,
     },
   },
   computed: {
+    emails() {
+      switch (this.emailsObj.service) {
+        case 'Google':
+          const emails = [];
+
+          this.emailsObj.data.forEach(email => emails.push({
+            sender: email.payload.headers.find(header => header.name === 'From').value,
+            title: email.payload.headers.find(header => header.name === 'Subject').value,
+            snippet: email.snippet,
+            received_at: email.payload.headers.find(header => header.name === 'Date').value,
+          }));
+
+          return emails;
+      }
+    },
     sortedEmails() {
-      console.log(this.emails)
       return this.emails?.sort(function(a, b) {
-        let keyA = new Date(a.headers.date.at(0));
-        let keyB = new Date(b.headers.date.at(0));
+        let keyA = new Date(a.received_at);
+        let keyB = new Date(b.received_at);
 
         if (keyA < keyB) return 1;
         if (keyA > keyB) return -1;

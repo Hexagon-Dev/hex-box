@@ -1,11 +1,17 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    devtools: { enabled: true },
+    devtools: {
+      enabled: true,
+
+      timeline: {
+        enabled: true,
+      },
+    },
     modules: [
         'nuxt-electron',
         '@invictus.codes/nuxt-vuetify',
         '@pinia/nuxt',
-        '@pinia-plugin-persistedstate/nuxt',
+        '@pinia-plugin-persistedstate/nuxt'
     ],
     electron: {
         build: [
@@ -32,8 +38,8 @@ export default defineNuxtConfig({
                 themes: {
                     dark: {
                         colors: {
-                            primary: 'rgb(67 56 202)',
-                            secondary: 'rgb(55 48 163)',
+                            primary: '#4338CA',
+                            secondary: '#3730A3',
                         }
                     },
                 },

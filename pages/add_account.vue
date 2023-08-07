@@ -6,7 +6,11 @@
           Add account
         </v-card-title>
 
-        <v-card-text>
+        <v-card-text v-if="account.serviceId === 1">
+          <v-btn @click="addGoogleAccount">Authorize with Google</v-btn>
+        </v-card-text>
+
+        <v-card-text v-else>
           <v-form ref="form">
             <v-autocomplete
               class="pb-2"
@@ -48,12 +52,12 @@
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="d-flex justify-space-between w-100 px-4">
-          <v-btn variant="flat" color="deep-purple-darken-3" @click="$router.push('/')">
+        <v-card-actions class="d-flex justify-space-between w-100 px-4" v-if="account.serviceId !== 1">
+          <v-btn variant="flat" color="primary" @click="$router.push('/')">
             Cancel
           </v-btn>
 
-          <v-btn variant="flat" color="deep-purple-darken-3" @click="addAccount">
+          <v-btn variant="flat" color="primary" @click="addAccount">
             Add account
           </v-btn>
         </v-card-actions>
@@ -63,6 +67,8 @@
 </template>
 
 <script>
+const { ipcRenderer } = window.require('electron');
+
 import { useAccountsStore } from '../stores/accounts';
 import { useModalStore } from '../stores/modal';
 import validation from '../mixins/validation';
@@ -116,6 +122,21 @@ export default {
           }
         }],
       );
+    },
+    addGoogleAccount() {
+      ipcRenderer.send('authGoogle');
+
+      ipcRenderer.on('authGoogleCodeExchangeFinish', (event, response) => {
+        this.account.email = response.data.emailAddress;
+
+        const account = this.accountsStore.addAccount(this.account);
+
+        if (this.accountsStore.currentAccountId === null) {
+          this.accountsStore.setCurrentAccountId(account.id);
+        }
+
+        this.$router.push('/mail');
+      });
     },
   },
 };
