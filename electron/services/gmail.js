@@ -10,6 +10,8 @@ export const gmailService = {
   },
 
   async fetchMessages() {
+    this.log('Fetching messages');
+
     const response = await this.gmail.users.messages.list({ userId: 'me' });
     const { messages } = response.data;
 
@@ -30,8 +32,16 @@ export const gmailService = {
   },
 
   async getProfile() {
+    this.log('Fetching profile');
+
     const response = await this.gmail.users.getProfile({userId: 'me'});
 
+    googleService.persistGoogleTokens(response.data.emailAddress);
+
     return response.data;
-  }
+  },
+
+  log(text) {
+    console.log('\x1b[32m[Gmail]\x1b[0m', text);
+  },
 };

@@ -4,6 +4,18 @@ import { imapService } from './services/imap';
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
 
+const requiredEnvVariables = [
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET',
+    'GOOGLE_REDIRECT_URL',
+];
+
+requiredEnvVariables.forEach((variable) => {
+    if (process.env[variable] === undefined) {
+        throw Error(`Missing ${variable} environment variable`);
+    }
+});
+
 app.whenReady().then(() => {
     const mainWindow = new BrowserWindow({
         width: 1280,
@@ -15,7 +27,7 @@ app.whenReady().then(() => {
     });
 
     ipcMain.on('authGoogle', async () => {
-        if (await googleService.authorizeGoogle()) {
+        if (await googleService.authorizeGoogle(mainWindow)) {
             mainWindow.webContents.send('authGoogleFinish', { success: true });
         }
     });
@@ -34,21 +46,25 @@ app.whenReady().then(() => {
         }
     });
 
-    ipcMain.on('authGoogleCodeExchangeFinishClose', async (event) => {
+    ipcMain.on('authGoogleCodeExchangeClose', async (event) => {
         event.sender.close();
     });
 
-    ipcMain.on('fetchGoogleProfile', async (event) => {
+    ipcMain.on('fetchGoogleProfile', async () => {
         const data = await (await googleService.gmailService()).getProfile({ userId: 'me' });
 
-        mainWindow.webContents.send('fetchGoogleProfile', { success: true, data });
+        mainWindow.webContents.send('fetchGoogleProfileFinish', { success: true, data });
     });
 
     ipcMain.on('fetchEmails', async (event, { account, service }) => {
-        let data = null;
+        console.log('fetchEmails', account.email, service.name);
+
+        let data;
 
         if (service.name === 'Google') {
-            data = await (await googleService.gmailService()).fetchMessages();
+            const gmailService = await googleService.gmailService();
+
+            data = await gmailService.fetchMessages();
         } else {
             if (imapService.imapClient === null) {
                 imapService.initService({
@@ -63,8 +79,12 @@ app.whenReady().then(() => {
             data = imapService.fetchMessages();
         }
 
-        event.sender.send('fetchEmails', { success: true, data, service: service.name });
+        event.sender.send('fetchEmailsFinish', { success: true, data, service: service.name });
     });
+
+    ipcMain.on('removeGoogleAccount', async (event, { email }) => {
+        googleService.removeGoogleAccount(email);
+    })
 
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
 });

@@ -132,7 +132,7 @@ export default {
         ipcRenderer.send('fetchGoogleProfile');
       });
 
-      ipcRenderer.on('fetchGoogleProfile', (event, response) => {
+      ipcRenderer.on('fetchGoogleProfileFinish', (event, response) => {
         this.account.email = response.data.emailAddress;
 
         const account = this.accountsStore.addAccount(this.account);

@@ -1,21 +1,25 @@
 <template>
   <v-container class="py-8 px-6" fluid>
-    <div v-if="isEmailsLoading">
-      Loading emails...
-    </div>
-
-    <v-row v-else>
+    <v-row>
       <v-col>
         <v-card>
           <v-toolbar class="px-4">
             <v-checkbox hide-details />
 
-            <v-btn icon class="mr-2"><v-icon>mdi-refresh</v-icon></v-btn>
+            <v-btn icon class="mr-2" @click="fetchMails"><v-icon>mdi-refresh</v-icon></v-btn>
             <v-btn icon disabled class="mr-2"><v-icon>mdi-archive</v-icon></v-btn>
             <v-btn icon disabled><v-icon>mdi-delete</v-icon></v-btn>
           </v-toolbar>
 
-          <v-list class="overflow-y-auto">
+          <v-list v-if="isEmailsLoading">
+            <v-list-item class="pa-0"><v-skeleton-loader type="list-item-avatar" /></v-list-item><v-divider />
+            <v-list-item class="pa-0"><v-skeleton-loader type="list-item-avatar" /></v-list-item><v-divider />
+            <v-list-item class="pa-0"><v-skeleton-loader type="list-item-avatar" /></v-list-item><v-divider />
+            <v-list-item class="pa-0"><v-skeleton-loader type="list-item-avatar" /></v-list-item><v-divider />
+            <v-list-item class="pa-0"><v-skeleton-loader type="list-item-avatar" /></v-list-item>
+          </v-list>
+
+          <v-list v-else>
             <template v-for="(email, key) in mails.data" :key="key">
               <v-list-item>
                 <template v-slot:prepend>
@@ -33,12 +37,12 @@
                     {{ formatDateToNow(new Date(email.received_at)) }} ago
                   </span>
 
-                  <v-btn size="small" icon class="mr-2"><v-icon>mdi-archive</v-icon></v-btn>
-                  <v-btn size="small" icon><v-icon>mdi-delete</v-icon></v-btn>
+                  <v-btn size="small" variant="flat" icon class="mr-2"><v-icon>mdi-archive</v-icon></v-btn>
+                  <v-btn size="small" variant="flat" icon><v-icon>mdi-delete</v-icon></v-btn>
                 </template>
               </v-list-item>
 
-              <v-divider />
+              <v-divider v-if="key !== mails.data.length - 1" />
             </template>
           </v-list>
         </v-card>
@@ -54,8 +58,10 @@ import { useServicesStore } from '../../stores/services';
 import { useMailsStore } from '../../stores/mails';
 import { useAccountsStore } from '../../stores/accounts';
 import {differenceInMinutes, format, formatDistanceToNow, parse} from "date-fns";
+import { VSkeletonLoader } from 'vuetify/labs/VSkeletonLoader';
 
 export default {
+  components: { VSkeletonLoader },
   data() {
     return {
       isEmailsLoading: false,
@@ -82,24 +88,24 @@ export default {
         this.accountsStore.setCurrentAccountId(value);
       },
     },
+    service() {
+      return this.serviceStore.getServiceById(this.account.serviceId);
+    }
+  },
+  watch: {
+    account() {
+      this.fetchMails();
+    },
   },
   mounted() {
-    if (differenceInMinutes(new Date, parse(this.mails.updatedAt, 'dd-MM-yyyy HH:mm', new Date())) < 1) {
-      return;
+    if (
+      this.mails.updatedAt === null
+      || differenceInMinutes(new Date, parse(this.mails.updatedAt, 'dd-MM-yyyy HH:mm', new Date())) > 1
+    ) {
+      this.fetchMails();
     }
 
-    const service = this.serviceStore.getServiceById(this.account.serviceId);
-
-    const payload = {
-      account: {...this.account},
-      service: {...service},
-    };
-
-    this.isEmailsLoading = true;
-
-    ipcRenderer.send('fetchEmails', payload);
-
-    ipcRenderer.on('fetchEmails', (event, emails) => {
+    ipcRenderer.on('fetchEmailsFinish', (event, emails) => {
       if (emails.success === false) {
         console.error(emails.error);
 
@@ -108,7 +114,7 @@ export default {
 
       const parsedEmails = [];
 
-      switch (service.name) {
+      switch (this.service.name) {
         case 'Google':
           emails.data.forEach(email => parsedEmails.push({
             sender: email.payload.headers.find(header => header.name === 'From').value,
@@ -130,6 +136,16 @@ export default {
     });
   },
   methods: {
+    fetchMails() {
+      const payload = {
+        account: {...this.account},
+        service: {...this.service},
+      };
+
+      this.isEmailsLoading = true;
+
+      ipcRenderer.send('fetchEmails', payload);
+    },
     formatDate(date) {
       return format(date, 'dd-MM-yyyy HH:mm');
     },

@@ -8,6 +8,7 @@
 const { ipcRenderer } = window.require('electron');
 
 export default {
+  layout: 'no_accounts',
   mounted() {
     ipcRenderer.send('authGoogleCodeExchange', this.$route.query);
 
@@ -18,7 +19,7 @@ export default {
         return;
       }
 
-      ipcRenderer.send('authGoogleCodeExchangeFinishClose');
+      ipcRenderer.send('authGoogleCodeExchangeClose');
     });
   },
 };

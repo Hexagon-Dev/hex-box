@@ -28,6 +28,8 @@
 </template>
 
 <script>
+const { ipcRenderer } = window.require('electron');
+
 import { useAccountsStore } from '../stores/accounts';
 import { useServicesStore } from '../stores/services';
 
@@ -43,6 +45,8 @@ export default {
   methods: {
     removeAccount(account) {
       useAccountsStore().removeAccount(account);
+
+      ipcRenderer.send('removeGoogleAccount', account.email);
     },
   },
 };
