@@ -30,7 +30,16 @@ export default {
       return useAccountsStore().accounts;
     },
   },
-  mounted() {
+  async mounted() {
+    const url = new URL(document.location.href);
+
+    const query = {};
+
+    url.searchParams.forEach((value, key) => query[key] = value)
+
+    // This is very bad, however it fixes bug with Google oauth redirect
+    await this.$router.push({path: url.pathname, query: query})
+
     if (this.accounts.length > 0) {
       this.$router.push('/mail/inbox');
     }

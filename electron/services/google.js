@@ -75,19 +75,25 @@ export const googleService = {
     return true;
   },
 
-  async exchangeGoogleCodes(payload) {
+  async exchangeGoogleCode(payload) {
+    this.log('Exchanging code');
+
     let { tokens } = await this.oauth2Client.getToken(payload.code);
 
     this.setGoogleTokens(tokens);
   },
 
   persistGoogleTokens(email) {
+    this.log('Saving token to storage');
+
     const tokens = JSON.stringify(this.oauth2Client.credentials);
 
     store.set(`googleOauth.${email}`, tokens);
   },
 
   removeGoogleAccount(email) {
+    this.log('Removing token from storage and revoking it');
+
     store.delete(`googleOauth.${email}`);
 
     this.oauth2Client.revokeToken(this.oauth2Client.credentials.access_token);
@@ -97,6 +103,8 @@ export const googleService = {
   },
 
   setGoogleTokens(tokens) {
+    this.log('Setting google token');
+
     this.oauth2Client.setCredentials(tokens);
 
     google.options({ auth: this.oauth2Client });

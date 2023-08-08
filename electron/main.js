@@ -34,7 +34,7 @@ app.whenReady().then(() => {
 
     ipcMain.on('authGoogleCodeExchange', async (event, payload) => {
         try {
-            await googleService.exchangeGoogleCodes(payload);
+            await googleService.exchangeGoogleCode(payload);
 
             const data = await (await googleService.gmailService()).getProfile({ userId: 'me' });
 
@@ -57,7 +57,7 @@ app.whenReady().then(() => {
     });
 
     ipcMain.on('fetchEmails', async (event, { account, service }) => {
-        console.log('fetchEmails', account.email, service.name);
+        console.log('\x1b[32m[Main]\x1b[0m', 'fetchEmails', account.email, service.name);
 
         let data;
 
